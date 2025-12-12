@@ -26,7 +26,8 @@
 #define pedastrianDelay 5000 //ms, how long after the button is pressed that car signal turns red
 
 uint32_t togglePeriod = 1000 / toggleFreq;
-uint8_t leds[3] = {0b00100100,0b01001100,0b01001100};
+
+extern uint8_t leds[3];
 
 typedef enum {
 	Default,	//default state where ped light is red and traffic light is green
@@ -36,7 +37,7 @@ typedef enum {
 
 void PedestrianCrossing1(void)
 {
-	uint8_t leds1[3] = {0,0,0};
+	//uint8_t leds1[3] = {0,0,0};
 
     static states State1 = Default;
     static states NextState1 = Default;
@@ -47,12 +48,15 @@ void PedestrianCrossing1(void)
 	static uint32_t startCarRedTime1 = 0;
 	static bool indicatorOn1 = false;
 
+	bool carIsRed = isLED_On(leds, &TL1_Red) && isLED_On(leds, &TL3_Red);
+	bool carIsOrange = isLED_On(leds, &TL1_Yellow) && isLED_On(leds, &TL3_Yellow);
+
 		State1 = NextState1;
 
 		switch (State1) // State machine
 			{
 				case Default:
-			    default_state(leds1);
+			    default_state(leds);
 
 				if (PL1_Hit()) { //if SW5 or Sw6 is pressed
 					NextState1 = PedBlink;
@@ -67,24 +71,26 @@ void PedestrianCrossing1(void)
 
 				case PedBlink:
 
-					if(isLED_On(leds, &TL1_Green) || isLED_On(leds, &TL3_Green) || isLED_On(leds, &TL1_Yellow) || isLED_On(leds, &TL3_Yellow)) {
-						set(leds1, &PL1_Red);
-						} else {
-						set(leds1, &PL1_Green);
+					if(!carIsRed || !carIsOrange) {
+						//car is active - pedestrian must remain red
+						reset(leds, &PL1_Green);
+						set(leds, &PL1_Red);
 					}
 					if (HAL_GetTick() - startCarRedTime1 >= pedastrianDelay) {
 						//Car signal of active lane
-						set(leds1, &TL1_Red);
-						set(leds1, &TL3_Red);
+						set(leds, &TL1_Red);
+						set(leds, &TL3_Red);
+						reset(leds, &TL1_Green);
+						reset(leds, &TL3_Green);
 					}
 					// toggle indicator based on toggleFreq
 					if (HAL_GetTick() - lastToggleTime1 >= togglePeriod) {
 						indicatorOn1 = !indicatorOn1;
 
 						if (indicatorOn1)
-						   set(leds1, &PL1_Blue);
+						   set(leds, &PL1_Blue);
 						else
-						   reset(leds1, &PL1_Blue);
+						   reset(leds, &PL1_Blue);
 
 						lastToggleTime1 = HAL_GetTick();
 					}
@@ -92,8 +98,8 @@ void PedestrianCrossing1(void)
 		            // After first toggle interval, switch pedestrian light green
 
 					if (HAL_GetTick() - startBlinkTime1 >= blink_duration) {
-						reset(leds1, &PL1_Blue); // turn off indicator
-						set(leds1, &PL1_Green);  // pedestrian green
+						reset(leds, &PL1_Blue); // turn off indicator
+						set(leds, &PL1_Green);  // pedestrian green
 
 						startPedGreenTime1 = HAL_GetTick();
 						NextState1 = PedGreen;
@@ -102,15 +108,17 @@ void PedestrianCrossing1(void)
 					break;
 
 				case PedGreen:
-					set(leds1, &PL1_Green);
-					reset(leds1, &PL1_Blue);
-					reset(leds1, &PL1_Red);
-					set(leds1, &TL1_Red);
-					set(leds1, &TL3_Red);
+					set(leds, &PL1_Green);
+					reset(leds, &PL1_Blue);
+					reset(leds, &PL1_Red);
+					set(leds, &TL1_Red);
+					set(leds, &TL3_Red);
+					reset(leds, &TL1_Green);
+					reset(leds, &TL3_Green);
 
 					if (HAL_GetTick() - startPedGreenTime1 >= walkingDelay) {
-						reset(leds1, &PL1_Green);
-						set(leds1, &PL1_Red);
+						reset(leds, &PL1_Green);
+						set(leds, &PL1_Red);
 						NextState1 = Default;
 					}
 					break;
@@ -123,7 +131,7 @@ void PedestrianCrossing1(void)
 
 void PedestrianCrossing2(void)
 {
-	uint8_t leds2[3] = {0,0,0};
+	//uint8_t leds2[3] = {0,0,0};
 
 	 static states State2 = Default;
 	 static states NextState2 = Default;
@@ -138,7 +146,7 @@ void PedestrianCrossing2(void)
 		switch (State2) // State machine
 		{
 		   case Default:
-			   default_state(leds2);
+			   default_state(leds);
 
 				if (PL2_Hit()) { //if SW7 or Sw8 is pressed
 					NextState2 = PedBlink;
@@ -156,17 +164,17 @@ void PedestrianCrossing2(void)
 				    indicatorOn2 = !indicatorOn2;
 
 				    if (indicatorOn2)
-				       set(leds2, &PL2_Blue);
+				       set(leds, &PL2_Blue);
 				    else
-				       reset(leds2, &PL2_Blue);
+				       reset(leds, &PL2_Blue);
 
 				    lastToggleTime2 = HAL_GetTick();
 				}
 
                 // After first toggle interval, switch pedestrian light green
 				if (HAL_GetTick() - startBlinkTime2 >= blink_duration) {
-				    reset(leds2, &PL2_Blue); // turn off indicator
-				    set(leds2, &PL2_Green);  // pedestrian green
+				    reset(leds, &PL2_Blue); // turn off indicator
+				    set(leds, &PL2_Green);  // pedestrian green
 
 					startPedGreenTime2 = HAL_GetTick();
 				    NextState2 = PedGreen;
@@ -175,13 +183,13 @@ void PedestrianCrossing2(void)
 
 		  case PedGreen:
 
-				set(leds2, &PL2_Green);
-				reset(leds2, &PL2_Blue);
-				reset(leds2, &PL2_Red);
+				set(leds, &PL2_Green);
+				reset(leds, &PL2_Blue);
+				reset(leds, &PL2_Red);
 
 				if (HAL_GetTick() - startPedGreenTime2 >= walkingDelay) {
-					reset(leds2, &PL2_Green);
-					set(leds2, &PL2_Red);
+					reset(leds, &PL2_Green);
+					set(leds, &PL2_Red);
 					NextState2 = Default;
 				}
 				break;
