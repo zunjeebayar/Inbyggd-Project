@@ -26,6 +26,7 @@
 #define pedastrianDelay 5000 //ms, how long after the button is pressed that car signal turns red
 
 uint32_t togglePeriod = 1000 / toggleFreq;
+uint8_t leds[3] = {0b00100100,0b01001100,0b01001100};
 
 typedef enum {
 	Default,	//default state where ped light is red and traffic light is green
@@ -66,6 +67,11 @@ void PedestrianCrossing1(void)
 
 				case PedBlink:
 
+					if(isLED_On(leds, &TL1_Green) || isLED_On(leds, &TL3_Green) || isLED_On(leds, &TL1_Yellow) || isLED_On(leds, &TL3_Yellow)) {
+						set(leds1, &PL1_Red);
+						} else {
+						set(leds1, &PL1_Green);
+					}
 					if (HAL_GetTick() - startCarRedTime1 >= pedastrianDelay) {
 						//Car signal of active lane
 						set(leds1, &TL1_Red);
@@ -81,11 +87,6 @@ void PedestrianCrossing1(void)
 						   reset(leds1, &PL1_Blue);
 
 						lastToggleTime1 = HAL_GetTick();
-					}
-					if(isLED_On(leds1, &TL1_Green) || isLED_On(leds1, &TL3_Green) || isLED_On(leds1, &TL1_Yellow) || isLED_On(leds1, &TL3_Yellow)) {
-						set(leds1, &PL1_Red);
-						} else {
-						set(leds1, &PL1_Green);
 					}
 
 		            // After first toggle interval, switch pedestrian light green
