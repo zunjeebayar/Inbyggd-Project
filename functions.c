@@ -8,8 +8,6 @@
 #include <stdbool.h>
 #include "leds.h"
 
-#define toggleFreq 2000 //ms
-
 // data[] => an array with bytes that will be sent to the shift register
 // length = how many bytes the array has
 void ShiftReg_SendBytes(uint8_t data[], uint16_t length)
@@ -46,6 +44,16 @@ void set(uint8_t leds[], const defLED *led){
 void reset(uint8_t leds[], const defLED *led){
 	leds[led->shift_reg] = leds[led->shift_reg] & ~(1 << led->bits); //~ = bitwise NOT
 	ShiftReg_SendBytes(leds, 3);
+}
+
+void default_state(uint8_t leds[]){
+	set(leds, &TL1_Green);
+	set(leds, &TL2_Green);
+	set(leds, &TL3_Green);
+	set(leds, &TL4_Green);
+
+	set(leds, &PL1_Red);
+	set(leds, &PL2_Red);
 }
 
 void toggleLED(uint8_t leds[], const defLED *led){
@@ -86,7 +94,7 @@ void initialization(){
 
 		// Knappar
 		if (PL2_Hit()) {
-			toggleLED(leds, &PL2_Blue);
+			reset(leds, &PL1_Red);
 		}
 
 
