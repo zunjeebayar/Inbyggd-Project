@@ -33,8 +33,23 @@ bool PL2_Hit(void) //SW7 and SW8
 else return false;
 }
 
-bool SW1_Hit(void) 
+bool SW1_Hit(void) //car for traffic light 1
 { if (HAL_GPIO_ReadPin(TL1_Car_GPIO_Port, TL1_Car_Pin) == 0) return true;
+else return false;
+}
+
+bool SW2_Hit(void) //car for traffic light 2
+{ if (HAL_GPIO_ReadPin(TL2_Car_GPIO_Port, TL2_Car_Pin) == 0) return true;
+else return false;
+}
+
+bool SW3_Hit(void) //car for traffic light 3
+{ if (HAL_GPIO_ReadPin(TL3_Car_GPIO_Port, TL3_Car_Pin) == 0) return true;
+else return false;
+}
+
+bool SW4_Hit(void) //car for traffic light 4
+{ if (HAL_GPIO_ReadPin(TL4_Car_GPIO_Port, TL4_Car_Pin) == 0) return true;
 else return false;
 }
 
@@ -173,6 +188,16 @@ void car1_SetGreen(void){ //function to set trafficlight 1 green
     set(leds, &TL3_Green);
 }
 
+void car1_SetOrange(void){ //function to set trafficlight 1 orange
+	reset(leds, &TL1_Green);
+	reset(leds, &TL1_Red);
+	set(leds, &TL1_Yellow);
+
+	reset(leds, &TL3_Green);
+	reset(leds, &TL3_Red);
+	set(leds, &TL3_Yellow);
+}
+
 void car1_SetRed(void){ //function to set trafficlight 1 red
     reset(leds, &TL1_Green);
     reset(leds, &TL1_Yellow);
@@ -205,6 +230,16 @@ void car2_SetGreen(void) { //function to set trafficlight 2 green
     set(leds, &TL4_Green);
 }
 
+void car2_SetOrange(void){ //function to set trafficlight 2 orange
+	reset(leds, &TL2_Green);
+	reset(leds, &TL2_Red);
+	set(leds, &TL2_Yellow);
+
+	reset(leds, &TL4_Green);
+	reset(leds, &TL4_Red);
+	set(leds, &TL4_Yellow);
+}
+
 void car2_SetRed(void){ //function to set trafficlight 2 red
     reset(leds, &TL2_Green);
     reset(leds, &TL2_Yellow);
@@ -233,13 +268,16 @@ void initialization(){
 
 	while(1){
 
-		set(leds, &TL1_Red);
-
-		default_state(leds);
-
 		// Knappar
-		if (PL2_Hit()) {
-			set(leds, &TL1_Red);
+	    if(SW1_Hit()){
+	    	car1_SetRed();
+	    	car2_SetOrange();
+	    }
+
+		else{
+		    leds[0] = 0b00100100;
+		    leds[1] =  0b01001100;
+		    leds[2] = 0b01001100;
 		}
 
 	}
