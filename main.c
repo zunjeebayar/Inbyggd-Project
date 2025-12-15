@@ -17,6 +17,7 @@
   */
 /* USER CODE END Header */
 /* Includes ------------------------------------------------------------------*/
+#include <statemachine_pedestrian.h>
 #include "main.h"
 #include "cmsis_os.h"
 #include "spi.h"
@@ -27,6 +28,7 @@
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
 #include "functions.h"
+#include "car_statemachine.h"
 /* USER CODE END Includes */
 
 /* Private typedef -----------------------------------------------------------*/
@@ -96,7 +98,15 @@ int main(void)
   MX_TIM7_Init();
   /* USER CODE BEGIN 2 */
 #ifdef RUN_TEST_PROGRAM
-  initialization();
+  //initialization();
+  while(1) {
+          //PedestrianCrossing1();
+          //PedestrianCrossing2();
+          RoadCrossing();
+  }
+
+  //xTaskCreate(PedestrianIndicatorTask, "Pedestrian", 128, NULL, 1, NULL);
+  //vTaskStartScheduler();
 #endif
   /* USER CODE END 2 */
 
