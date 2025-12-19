@@ -9,7 +9,6 @@
 #include "spi.h"
 #include "FreeRTOS.h"
 #include "gpio.h"
-#include "tasks.h"
 #include <stdbool.h>
 #include "leds.h"
 #include "functions.h"
@@ -17,8 +16,6 @@
 #define orangeDelay 2000 	//ms, how long traffic light stays orange
 #define greenDelay 5000 	//ms, how long traffic light stays green, IF both lanes have no active cars
 #define redDelayMax 6000 	//ms, how long a car can maximum wait on red signal, IF both lanes have active cars
-
-extern uint8_t leds[3];
 
 typedef enum {
     VerticalGreen,    			// Vertical GREEN, Horizontal RED
@@ -30,7 +27,7 @@ typedef enum {
 	VerticalOrangeToGreen		// Horizontal ORANGE -> RED, Vertical ORANGE -> GREEN
 } states;
 
-void RoadCrossing(void)
+void RoadCrossing()
 {
 
     static states State = VerticalGreen;
@@ -39,11 +36,6 @@ void RoadCrossing(void)
     /* Time stamps used for non-blocking timing control */
 	static uint32_t startCarGreenTime = 0;	// time when the traffic signal turns green
 	static uint32_t startCarOrangeTime = 0;	// time when the car signal turns orange
-
-
-	/* Car States */
-    bool carVertical   = SW1_Hit() || SW3_Hit();	//if any car is active in vertical lane
-    bool carHorizontal = SW2_Hit() || SW4_Hit();	//if any car is active in horizontal lane
 
 		State = NextState;
 
@@ -55,7 +47,7 @@ void RoadCrossing(void)
 				//ped1_SetRed();	//all pedestrian signals shall be red
 				//ped2_SetRed();
 
-				if(!carHorizontal && !carVertical && (HAL_GetTick() - startCarGreenTime >= greenDelay)) { //R2.4
+				if(!carHorizontal() && !carVertical() && (HAL_GetTick() - startCarGreenTime >= greenDelay)) { //R2.4
 
 					/* Initialize timing variables for car transition */
 					startCarOrangeTime = HAL_GetTick();
@@ -63,7 +55,7 @@ void RoadCrossing(void)
 					/* If there are no active cars in any direction and greenDelay deadline has passed */
 					NextState = VerticalOrangeToRed;
 
-				} else if(carHorizontal && carVertical && (HAL_GetTick() - startCarGreenTime >= redDelayMax)) { //R2.6
+				} else if(carHorizontal() && carVertical() && (HAL_GetTick() - startCarGreenTime >= redDelayMax)) { //R2.6
 
 					/* Initialize timing variables for car transition */
 					startCarOrangeTime = HAL_GetTick();
@@ -71,7 +63,7 @@ void RoadCrossing(void)
 					/* If there are active cars in both lanes, horizontal lane shall wait redDelayMax ms */
 					NextState = VerticalOrangeToRed;
 
-				} else if (carHorizontal && !carVertical) { //R2.7
+				} else if (carHorizontal() && !carVertical()) { //R2.7
 
 					/* Initialize timing variables for car transition */
 					startCarOrangeTime = HAL_GetTick();
@@ -113,7 +105,7 @@ void RoadCrossing(void)
 					car2_SetGreen();	//SW2 & SW4 car signals shall be green
 					car1_SetRed();		//SW1 & SW3 car signals shall be red
 
-					if(!carHorizontal && !carVertical && (HAL_GetTick() - startCarGreenTime >= greenDelay)){
+					if(!carHorizontal() && !carVertical() && (HAL_GetTick() - startCarGreenTime >= greenDelay)){
 
 						/* Initialize timing variables for car transition */
 						startCarOrangeTime = HAL_GetTick();
@@ -121,7 +113,7 @@ void RoadCrossing(void)
 						/* If there are no active cars in either lanes, signal shall be green for greenDelay ms */
 						NextState = HorizontalOrangeToRed;
 
-					} else if(carHorizontal && carVertical && (HAL_GetTick() - startCarGreenTime >= redDelayMax)) {
+					} else if(carHorizontal() && carVertical() && (HAL_GetTick() - startCarGreenTime >= redDelayMax)) {
 
 						/* Initialize timing variables for car transition */
 						startCarOrangeTime = HAL_GetTick();
@@ -129,7 +121,7 @@ void RoadCrossing(void)
 						/* If there are active cars in both lanes, vertical lane shall wait redDelayMax ms */
 						NextState = HorizontalOrangeToRed;
 
-					} else if(!carHorizontal && carVertical) {
+					} else if(!carHorizontal() && carVertical()) {
 
 						/* Initialize timing variables for car transition */
 						startCarOrangeTime = HAL_GetTick();
