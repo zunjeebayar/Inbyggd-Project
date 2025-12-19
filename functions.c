@@ -4,7 +4,6 @@
 #include "spi.h"
 #include "FreeRTOS.h"
 #include "gpio.h"
-#include "tasks.h"
 #include <stdbool.h>
 #include <stdio.h>
 #include "leds.h"
@@ -62,30 +61,6 @@ void set(uint8_t leds[], const defLED *led){
 void reset(uint8_t leds[], const defLED *led){
 	leds[led->shift_reg] = leds[led->shift_reg] & ~(1 << led->bits); //~ = bitwise NOT
 	ShiftReg_SendBytes(leds, 3);
-}
-
-void toggleLED(uint8_t leds[], const defLED *led){
-	static bool state = false; //state for the LED
-
-	if(state){
-		//Turn off the LED
-		reset(leds, led); //~ = bitwise NOT
-		HAL_Delay(100);
-	} else {
-		//Turn on the LED
-		set(leds, led);
-		HAL_Delay(100);
-	}
-	state = !state; //flip the state for the next call
-}
-
-bool isLED_On(uint8_t leds[], const defLED *led) {
-    // Check if the specific LED bit is set (i.e., ON)
-    if (leds[led->shift_reg] & (1 << led->bits)) {
-        return true; // LED is ON
-    } else {
-        return false; // LED is OFF
-    }
 }
 
 void car1_SetGreen(void){ //function to set trafficlight 1 green
@@ -172,26 +147,11 @@ void ped2_SetGreen(void){ //function to turn of ped2 green light
     reset(leds, &PL2_Blue);
 }
 
-void initialization(){
-
-	//uint8_t leds[3] = {0b0,0b0,0b0};
-
-	while(1){
-
-		// Knappar
-	    if(SW1_Hit()){
-	    	car1_SetRed();
-	    	car2_SetOrange();
-	    }
-
-		else{
-		    leds[0] = 0b00100100;
-		    leds[1] =  0b01001100;
-		    leds[2] = 0b01001100;
-		}
-
-	}
+bool carVertical(){
+	return SW1_Hit() || SW3_Hit();
 }
 
-
+bool carHorizontal() {
+	return SW2_Hit() || SW4_Hit();
+}
 
